@@ -22,7 +22,7 @@ def getWeather(city):
     weather.append(content["name"])
     weather.append(content["weather"][0]["main"])
     weather.append(content["weather"][0]["description"])
-    weather.append(round((content["main"]["temp"]) * 9/5 - 459.67, 2)) #API returns Kelvins, converting to F, round using 'round()' function
+    weather.append(round((content["main"]["temp"]) * 9/5 - 459.67, 1)) #API returns Kelvins, converting to F, round using 'round()' function
     weather.append(content["main"]["humidity"])
     weather.append(content["coord"]["lat"])
     weather.append(content["coord"]["lon"])

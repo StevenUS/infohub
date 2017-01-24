@@ -18,14 +18,11 @@ class UserManager(models.Manager):
 
             # Validation passed. Save the new user to the database,
             # but first check if the user already exists.
-            if not len(User.objects.filter(email = data["Email"])) > 0:
+            if not len(User.objects.filter(name = data["Name"])) > 0: #assuming objects.filter is part of ORM
                 newUser = User.objects.create(
-                    first_name = data['First Name'],
-                    last_name = data['Last Name'],
-                    email = data['Email'],
+                    name = data['Name'],
                     password = bcrypt.hashpw(data['Password'].encode(), bcrypt.gensalt()),
-                    city = data['City'],
-                    birthday = data['Birthday']
+                    city = data['City']
                 )
 
                 response["registered"] = True
@@ -40,7 +37,7 @@ class UserManager(models.Manager):
         badLoginMsg = "Unknown user email or bad password."
         existingUser = None
         try:
-            existingUser = User.objects.filter(email = data['Email'])
+            existingUser = User.objects.filter(name = data['Name']) #objects.filter part of ORM?
             if bcrypt.hashpw(data['Password'].encode(), existingUser[0].password.encode()) != existingUser[0].password:
                 response["logged_in"] = False
                 response["errors"] = [ badLoginMsg ]
@@ -63,25 +60,24 @@ class UserManager(models.Manager):
         response = []
 
         self.validateNotBlank(data, response)
-        self.validateNames(data, response)
+        self.validateName(data, response)
         self.validatePasswords(data, response)
-        self.validateEmail(data, response)
-        self.validateBirthday(data, response)
-        self.validateCity(data, response)
+        # self.validateCity(data, response)
 
         return response
 
     def validateNotBlank(self, data, errors):
         for key in data:
             if len(data[key]) < 1:
-                errors.append(key + " is empty but is required.")
+                errors.append(key + " is required.")
 
-    def validateNames(self, data, errors):
+    def validateName(self, data, errors):
         MIN_NAME_LEN = 2
-        if not data["First Name"].isalpha() or not data["Last Name"].isalpha():
-            errors.append("Only alphamumeric characters are allowed for the first and last name.")
 
-        if len(data["First Name"]) < MIN_NAME_LEN or len(data["Last Name"]) < MIN_NAME_LEN:
+        if not data["Name"].isalpha():
+            errors.append("Only alphamumeric characters are allowed for the name.")
+
+        if len(data["Name"]) < MIN_NAME_LEN:
             errors.append("First and Last Names must contain at least two characters.")
 
     def validatePasswords(self, data, errors):
@@ -92,30 +88,16 @@ class UserManager(models.Manager):
         if len(data["Password"]) != len(data["Confirmed Password"]):
             errors.append("The password and confirmed password do not match.")
 
-    def validateEmail(self, data, errors):
-        EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9.+_-]+@[a-zA-Z0-9._-]+\.[a-zA-Z]+$')
-        if not EMAIL_REGEX.match(data["Email"]):
-            errors.append("The email is invalid.")
-
-    def validateBirthday(self, data, errors):
-        MIN_BIRTHDAY = '1900-01-01'
-        MAX_BIRTHDAY = str(datetime.datetime.now())
-        if data["Birthday"] < MIN_BIRTHDAY or data["Birthday"] > MAX_BIRTHDAY:
-            errors.append("Invalid birthday.")
-
-    def validateCity(self, data, errors):
-        if len(data["City"]) < 1:
-            errors.append("City can't be blank")
+    # def validateCity(self, data, errors):
+    #     if len(data["City"]) < 1:
+    #         errors.append("City can't be blank")
 
     ####### Validation Helper Methods Ends #######
 
 
 class User(models.Model):
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField(max_length=255)
+    name = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
-    birthday = models.DateField()
     city = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

@@ -1,50 +1,66 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html lang="en">
   <head>
     <meta charset="utf-8">
     {% load staticfiles %}
-    <link rel="stylesheet" href="{% static 'infohub/css/style.css' %}"media="screen" title="no title" charset="utf-8">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-    <script src="{% static 'infohub/js/script.js' %}" ></script>
-    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-    <link rel="stylesheet" href="{% static 'infohub/css/bootstrap.min.css' %}"media="screen" title="bootstrap" charset="utf-8">
+    <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'infohub/css/bootstrap.min.css' %}" media="screen" charset="utf-8"/>
+    <link rel="stylesheet" type="text/css" href="{% static 'infohub/css/style.css' %}" media="screen" charset="utf-8"/>
     <title>InfoHub</title>
     <meta name="viewport" content="initial-scale=0.5">
   </head>
   <body>
-    <div id="big_box">
-        <div class="header">
-            <div class="header_msg">
-                <h2>Hi, {{ first_name }}</h2>
+    <nav class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <p class='nav-message'>Hi, {{ name }}</p>
             </div>
-            <nav class="nav_links">
-                <a href="/info/profile">Profile</a>
-                <a href="{% url 'useradmin:logout' %}">Logout</a>
-            </nav>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav navbar-right">
+                    <li >
+                        <a href="/info/profile">Profile</a>
+                    </li>
+                    <li >
+                        <a href="{% url 'useradmin:logout' %}">Logout</a>
+                    </li>
+                </ul>
+            </div>
         </div>
-        <div id="home_content">
-            <div class="news_box">
-              <div id="alert" hidden="true">
-              </div>
-              <div id="loader">
-                <i class="fa fa-circle-o-notch fa-spin" style="font-size:500px;color:rgb(255,114,38)"></i>
-              </div>
-              <img id="npr_def_img" hidden=true src="{% static 'infohub/img/npr-logo.png' %}">
+    </nav>
+    <!-- </div> -->
+    <div class="container" style="max-width: 1000px">
+        <div id="weather_map" class="row">
+            <div id="map" class="col-xs-9"></div>
+            <div id="weather" class="col-xs-3">
+                <h4>Weather</h4>
+                <span class="weather_title"><p>Status</p></span>
+                <p>{{weather_status}}</p>
+                <span class="weather_title"><p>Temperature</p></span>
+                <p>{{weather_temp}}&deg; F</p>
+                <span class="weather_title"><p>Humidity</p></span>
+                <p>{{weather_humidity}}%</p>
             </div>
-            <div id="weather_map">
-                <div id="map"></div>
-                <div id="weather">
-                    <h4>Weather</h4>
-                    <span class="weather_title"><p>Status</p></span>
-                    <p>{{weather_status}}</p>
-                    <span class="weather_title"><p>Temperature</p></span>
-                    <p>{{weather_temp}}&deg; F</p>
-                    <span class="weather_title"><p>Humidity</p></span>
-                    <p>{{weather_humidity}}%</p>
+        </div>
+        <div class="row">
+            <div id="news-box" class="col">
+                <div id="alert" hidden="true"></div>
+                <div id="loader">
+                    <i class="fa fa-circle-o-notch fa-spin" style="font-size:200px;color:rgb(0,140,255)"></i>
                 </div>
+                <img id="npr_def_img" hidden=true src="{% static 'infohub/img/npr-logo.png' %}">
             </div>
         </div>
+
     </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+    <script src="{% static 'infohub/js/script.js' %}" ></script>
+    <script src="{% static 'infohub/js/bootstrap.min.js' %}" ></script>
     <script>
       var map;
 

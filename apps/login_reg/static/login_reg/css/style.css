@@ -1,21 +1,22 @@
-/*.error{
-  color: red;
+/*login regitration styling*/
+input{
+    display: block;
 }
-.errors{
-  margin-top: 10px;
-  margin-left: 100px;
-  width: 350px;
-  border: 1px solid black;
-  font-size: 12px;
+.img_svg {
+    margin-top: 15px;
+    max-width: 150px;
+    min-width: 70px;
 }
-/*.btn{
-  background-color: darkblue;
-  color: white;
-  width: 60px;
-  height: 25px;
-}*/
-/*.greenText{
-  color: green;
-}**/
-
-/*Merged from steve styles below*/
+.logo-title {
+    margin-left: 5px;
+    margin-top: 20px;
+    max-width: 151px;
+    max-height: 70px;
+}
+.mainLogo {
+    max-height: 120px;
+    text-align: center;
+}
+.btn {
+    margin-top: 5px;
+}

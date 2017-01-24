@@ -31,7 +31,7 @@ def index(request):
         pass;
 
     context = {
-        "first_name" : User.objects.get(id = userID).first_name,
+        "name" : User.objects.get(id = userID).name,
         "stories" : [],
         "city": User.objects.get(id=userID).city,
         "weather_status" : current_weather[2],
@@ -49,6 +49,7 @@ def getInfo(request):
         return redirect(reverse('useradmin:index'))
 
     user_id = request.session['userID']
+    #comment out line 53 to stop api calls
     stories = sources.getInfo(user_id)
     context = {
         "first_name" : user_id,

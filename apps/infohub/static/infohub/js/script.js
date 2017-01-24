@@ -5,7 +5,7 @@ $(document).ready(
             url: "/info/getinfo",
             method: "get",
             success: function(stories) {
-                news = $('.news_box');
+                news = $('#news-box');
                 var newsAlerts = 0;
 
                 // For each enabled news source, grab the
@@ -34,48 +34,46 @@ $(document).ready(
                 $('#loader').attr("hidden", true);
             }
         });
+        function addStoriesToDOM(location, stories, div){
+            var numNewsAlerts = 0;
+            $(div).append("<h4>" + location + "</h4>");
+            for (var i = 0; i < stories[location].length; i++){
+                // Multiple keywords can be highlighted, so handle them separately.
+                // Only a comma is currently supported as a keyword delimiter.
+                var highlights = [];
+                if (stories[location][i].highlight_text)
+                  highlights = stories[location][i].highlight_text.split(",");
 
-        function addStoriesToDOM(location, stories, div)
-        {
-          var numNewsAlerts = 0;
-          $(div).append("<h4>" + location + "</h4>");
-          for (var i = 0; i < stories[location].length; i++)
-          {
-              // Multiple keywords can be highlighted, so handle them separately.
-              // Only a comma is currently supported as a keyword delimiter.
-              var highlights = [];
-              if (stories[location][i].highlight_text)
-                highlights = stories[location][i].highlight_text.split(",");
+                // Build the html markup representing the story.
+                var html = "<a target='_blank' href=" + stories[location][i].url + ">" + stories[location][i].title + "</a>";
+                html += "<p>";
 
-              // Build the html markup representing the story.
-              var html = "<a target='_blank' href=" + stories[location][i].url + ">" + stories[location][i].title + "</a>";
-              html += "<p>";
+                // Add thumbnail
+                image = stories[location][i].image;
+                if(image.length === 0 && location === "NPR")
+                    // Get the default NPR image from a hidden img tag if NPR didn't provide one.
+                    image = $('#npr_def_img').attr('src');
 
-              // Add thumbnail
-              image = stories[location][i].image;
-              if(image.length === 0 && location === "NPR")
-                // Get the default NPR image from a hidden img tag if NPR didn't provide one.
-                image = $('#npr_def_img').attr('src');
+                html += "<img class='thumbnail' src='" + image + "'>";
 
-              html += "<img class='thumbnail' src='" + image + "'>";
+                // Highlight each specified keyword.
+                var finalDescription = stories[location][i].description;
+                var description_length = finalDescription.length;
+                for(var k = 0; k < highlights.length; k++)
+                {
+                    var regex = new RegExp(highlights[k], 'gi' );
+                    finalDescription = finalDescription.replace(regex, "<span class='highlight_text'>" + highlights[k] + "</span>");
+                }
+                html += finalDescription + "</p>";
 
-              // Highlight each specified keyword.
-              var finalDescription = stories[location][i].description;
-              var description_length = finalDescription.length;
-              for(var k = 0; k < highlights.length; k++)
-              {
-                var regex = new RegExp(highlights[k], 'gi' );
-                finalDescription = finalDescription.replace(regex, "<span class='highlight_text'>" + highlights[k] + "</span>");
-              }
-              html += finalDescription + "</p>";
+                // If anything was highligthed, alert the user.
+                if(finalDescription.length > description_length)
+                    numNewsAlerts++;
 
-              // If anything was highligthed, alert the user.
-              if(finalDescription.length > description_length)
-                numNewsAlerts++;
-
-              // Add the above html into the DOM.
-              $(div).append(html)
-          }
-          return numNewsAlerts;
+                // Add the above html into the DOM.
+                $(div).append(html)
+            }
+            return numNewsAlerts;
+            
         }
     });
