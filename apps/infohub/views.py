@@ -28,7 +28,7 @@ def index(request):
     except Exception as e:
         # This might fail due to an API key issue.
         # Ignoring errors for now.
-        pass;
+        pass
 
     context = {
         "name" : User.objects.get(id = userID).name,
@@ -69,9 +69,9 @@ def adminPortal(request):
 def show_profile(request):
     user_id = request.session['userID']
     currentSettings = {}
-    currentSettings["Bing"] = { "Enabled" : "" }
+    currentSettings["TheGuardian"] = { "Enabled" : "" }
     currentSettings["CNN"] = { "Enabled" : "" }
-    currentSettings["NPR"] = { "Enabled" : "" }
+    currentSettings["HuffPost"] = { "Enabled" : "" }
 
     settings = InfoSource.objects.getActive(user_id)
     for setting in settings:
@@ -90,3 +90,9 @@ def set_preferences(request):
     if request.method == "POST" and "userID" in request.session:
         InfoSource.objects.set(request.POST, request.session["userID"])
     return redirect(reverse('info:index'))
+
+def test_new_api(request):
+    user_id = request.session['userID']
+    content = sources.getInfoHuffPost(user_id, 5, "")
+    context = { "source" : content }
+    return render(request, 'infohub/test_new.html', context)

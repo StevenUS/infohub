@@ -10,14 +10,14 @@ $(document).ready(
 
                 // For each enabled news source, grab the
                 // stories and add them to the home page.
-                if(stories["Bing"])
-                  newsAlerts += addStoriesToDOM("Bing", stories, news);
+                if(stories["TheGuardian"])
+                  newsAlerts += addStoriesToDOM("TheGuardian", stories, news);
 
                 if(stories["CNN"])
                   newsAlerts += addStoriesToDOM("CNN", stories, news);
 
-                if(stories["NPR"])
-                  newsAlerts += addStoriesToDOM("NPR", stories, news);
+                if(stories["HuffPost"])
+                  newsAlerts += addStoriesToDOM("HuffPost", stories, news);
 
                 // If there were any highlights done, add a news alert.
                 if(newsAlerts > 0)
@@ -36,7 +36,21 @@ $(document).ready(
         });
         function addStoriesToDOM(location, stories, div){
             var numNewsAlerts = 0;
-            $(div).append("<h4>" + location + "</h4>");
+            
+            if(location == "TheGuardian") {
+                altLocation = "The Guardian"
+            }
+            else if (location == "HuffPost"){
+                altLocation = "The Huffington Post"
+            }
+            else { 
+                altLocation = location 
+            }
+
+            $(div).append("<h4>" + altLocation + "</h4>");
+
+            location = location.replace(" ", "")
+
             for (var i = 0; i < stories[location].length; i++){
                 // Multiple keywords can be highlighted, so handle them separately.
                 // Only a comma is currently supported as a keyword delimiter.
@@ -50,9 +64,15 @@ $(document).ready(
 
                 // Add thumbnail
                 image = stories[location][i].image;
-                if(image.length === 0 && location === "NPR")
-                    // Get the default NPR image from a hidden img tag if NPR didn't provide one.
-                    image = $('#npr_def_img').attr('src');
+                if(image.length === 0 && location === "TheGuardian") {
+                    image = $('#guar_def_img').attr('src');
+                }
+                else if (image.length === 0 && location === "HuffPost") {
+                    image = $('#hp_def_img').attr('src');
+                }
+                else if (image.length === 0 && location === "CNN") {
+                    image = $('#cnn_def_img').attr('src');
+                }
 
                 html += "<img class='thumbnail' src='" + image + "'>";
 

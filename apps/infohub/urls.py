@@ -5,5 +5,6 @@ urlpatterns = [
     url(r'adminportal$', views.adminPortal, name = 'adminportal'),
     url(r'profile$', views.show_profile, name = 'show_profile'),
     url(r'profile/set$', views.set_preferences, name = 'set_preferences'),
-    url(r'getinfo$', views.getInfo, name = 'getInfo')
+    url(r'getinfo$', views.getInfo, name = 'getInfo'),
+    url(r'testnew$', views.test_new_api, name = 'testnew')
 ]

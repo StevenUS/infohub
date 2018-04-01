@@ -4,6 +4,7 @@ import time
 import urllib2
 import json
 
+
 ####################################################################
 #                                                                  #
 # This file should only contain methods used to communicate with   #
@@ -18,60 +19,27 @@ def getInfo(user_id):
     user_sources = InfoSource.objects.getActive(user_id)
 
     # Debugging settings
-    BING_ENABLED = True;
-    CNN_ENABLED = True;
-    NPR_ENABLED = True;
+    TheGuardian_ENABLED = True
+    CNN_ENABLED = True
+    HuffPost_ENABLED = True
 
     # Loop and retrieve data from each source
     stories = {}
     for source in user_sources:
-        if source.source_type == "api" and source.location == "Bing" and BING_ENABLED:
-            recentStories = getInfoBing(user_id, source.max_snippets, source.highlight_text)
+        if source.source_type == "api" and source.location == "TheGuardian" and TheGuardian_ENABLED:
+            recentStories = getInfoGuardian(user_id, source.max_snippets, source.highlight_text)
             if len(recentStories) > 0:
-                stories["Bing"] = recentStories
+                stories["TheGuardian"] = recentStories
         elif source.source_type == "api" and source.location == "CNN" and CNN_ENABLED:
             recentStories = getInfoCNN(user_id, source.max_snippets, source.highlight_text)
             if len(recentStories) > 0:
                 stories["CNN"]  = recentStories
-        elif source.source_type == "api" and source.location == "NPR" and NPR_ENABLED:
-            recentStories = getInfoNPR(user_id, source.max_snippets, source.highlight_text)
+        elif source.source_type == "api" and source.location == "HuffPost" and HuffPost_ENABLED:
+            recentStories = getInfoHuffPost(user_id, source.max_snippets, source.highlight_text)
             if len(recentStories) > 0:
-                stories["NPR"] = recentStories
+                stories["HuffPost"] = recentStories
 
     # We have hit all the sources. Return the data.
-    return stories
-
-# Retrieves info from Bing News.
-def getInfoBing(user_id, max_snippets, highlight_text):
-    # Get the content from the Bing News Search API
-    # See https://www.microsoft.com/cognitive-services/en-us/bing-news-search-api for details.
-    url = "https://api.cognitive.microsoft.com/bing/v5.0/news/?Category=World"
-    api_key = "5f3b95abf31f452f8a3c4cb27a2d39f7"
-    req = urllib2.Request(url)
-    req.add_header('Ocp-Apim-Subscription-Key', api_key)
-
-    content = None
-    try:
-        resp = urllib2.urlopen(req)
-        content = json.load(resp)
-    except Exception as e:
-        print "DEBUG: urlopen failed for Bing"
-        Audit.objects.audit(user_id, "Failed to retrieve info from Bing")
-        return []
-
-    # Parse the content and normalize into InfoHub format.
-    stories = []
-    for story in content["value"][:max_snippets]:
-        stories.append({
-            "source" : "Bing News",
-            "title" : story["name"],
-            "url" : story["url"],
-            "description" : story["description"],
-            "highlight_text" : highlight_text,
-            "image" : story["image"]["thumbnail"]["contentUrl"]
-        })
-
-    Audit.objects.audit(user_id, "Retrieved info from Bing")
     return stories
 
 # Retrieves info from CNN.
@@ -95,9 +63,14 @@ def getInfoCNN(user_id, max_snippets, highlight_text):
     # Parse the content and normalize into InfoHub format.
     stories = []
     previous_title = ""
-    for story in content["articles"][:max_snippets + 1]: # Account for dupe stories per 9/29/2016
+    for story in content["articles"][:max_snippets]: # Account for dupe stories per 9/29/2016
         # NOTE: CNN returns the first story twice (likely bug on their side),
         # so we exlicitely check for that and ignore dupes.
+
+        thumbnail = ""
+        if "urlToImage" in story and len(story["urlToImage"]) > 0:
+            thumbnail = story["urlToImage"]
+
         if story["title"] != previous_title:
             stories.append({
                 "source" : "CNN News", # Displaying the source is required by CNN if site is public.
@@ -105,18 +78,55 @@ def getInfoCNN(user_id, max_snippets, highlight_text):
                 "url" : story["url"],
                 "description" : story["description"],
                 "highlight_text" : highlight_text,
-                "image" : story["urlToImage"]
+                "image" : thumbnail
             })
             previous_title = story["title"]
 
     Audit.objects.audit(user_id, "Retrieved info from CNN")
     return stories
 
-# Retrieves info from NPR.
-def getInfoNPR(user_id, max_snippets, highlight_text):
-    #http://api.npr.org/query?id=1126&apiKey=MDI2ODkyNTcxMDE0NzQ5MzUxMTMxN2M1ZA000&format=json
-    base_url = "http://api.npr.org/query?id=1003&format=json"
-    api_key = "MDI2ODkyNTcxMDE0NzQ5MzUxMTMxN2M1ZA000"
+# Retrieves info from Guardian.
+def getInfoGuardian(user_id, max_snippets, highlight_text):
+    base_url = "http://content.guardianapis.com/search?show-fields=thumbnail%2CbodyText"
+    api_key = "bf556d7d-da5e-4ec9-bd6a-3eb98645abef"
+    url = base_url + "&api-key=" + api_key
+    req = urllib2.Request(url)
+
+    content = None
+    try:
+        resp = urllib2.urlopen(req)
+        content = json.load(resp)
+    except Exception as e:
+        print "DEBUG: urlopen failed for Guardian"
+        Audit.objects.audit(user_id, "Failed to retrieve info from Guardian")
+        return []
+
+    stories = []
+    for story in content["response"]["results"][:max_snippets]:
+
+        thumbnail = ""
+        if "thumbnail" in story["fields"] and len(story["fields"]["thumbnail"]) > 0:
+            thumbnail = story["fields"]["thumbnail"]
+
+        description = story["fields"]["bodyText"][0:300]
+        if description.rfind('.') > 0:
+            description = description[:description.rfind('.')+1]
+
+        stories.append({
+            "source" : "Guardian",
+            "title" : story["webTitle"],
+            "url" : story["webUrl"],
+            "description" : description,
+            "highlight_text" : highlight_text,
+            "image" : thumbnail
+        })
+
+    Audit.objects.audit(user_id, "Retrieved info from Guardian")
+    return stories
+
+def getInfoHuffPost(user_id, max_snippets, highlight_text):
+    base_url = "https://newsapi.org/v2/top-headlines?sources=the-huffington-post"
+    api_key = "a8fe3c304b85440b96349a807dfa181c"
     url = base_url + "&apiKey=" + api_key
     req = urllib2.Request(url)
 
@@ -125,27 +135,25 @@ def getInfoNPR(user_id, max_snippets, highlight_text):
         resp = urllib2.urlopen(req)
         content = json.load(resp)
     except Exception as e:
-        print "DEBUG: urlopen failed for NPR"
-        Audit.objects.audit(user_id, "Failed to retrieve info from NPR")
+        print "DEBUG: urlopen failed for HuffPost"
+        Audit.objects.audit(user_id, "Failed to retrieve info from HuffPost")
         return []
 
     stories = []
-    for story in content["list"]["story"][:max_snippets]:
-        # NPR doesn't always send images, so use static image
-        # if we can't find one in the response.
-        # The static image is set in Javascript client side.
-        image = ""
-        if "image" in story and len(story["image"]) > 0 and "src" in story["image"][0]:
-            image = story["image"][0]["src"]
+    for story in content["articles"][:max_snippets]:
+        
+        thumbnail = ""
+        if "urlToImage" in story and len(story["urlToImage"]) > 0:
+            thumbnail = story["urlToImage"]
 
         stories.append({
-            "source" : "NPR",
-            "title" : story["title"]["$text"],
-            "url" : story["link"][0]["$text"],
-            "description" : story["teaser"]["$text"],
+            "source" : "HuffPost",
+            "title" : story["title"],
+            "url" : story["url"],
+            "description" : story["description"],
             "highlight_text" : highlight_text,
-            "image" : image
+            "image" : thumbnail
         })
 
-    Audit.objects.audit(user_id, "Retrieved info from NPR")
+    Audit.objects.audit(user_id, "Retrieved info from HuffPost")
     return stories

@@ -7,19 +7,21 @@ from ..login_reg.models import User
 class InfoSourceMgr(models.Manager):
     # Adds a new source the user wants to use.
     def set(self, data, user_id):
-        self.store_profile(data, user_id, "Bing")
+        self.store_profile(data, user_id, "TheGuardian")
         self.store_profile(data, user_id, "CNN")
-        self.store_profile(data, user_id, "NPR")
+        self.store_profile(data, user_id, "HuffPost")
 
     #Because the form has 3 unique 'locations' and the InfoSource
     #function can only take one location parameter, we need to "filter"
     #and pass one location at a time - hence above, and the 'getNewForm' method
     def store_profile(self, data, user_id, location):
         source = InfoSource.objects.filter(location = location, user_id = user_id)
+        
         source_id = -1
         if source:
             source_id = source[0].id
         newForm = self.getNewForm(data, location, source_id)
+
 
         if len(source) > 0:
             if newForm["location"]:
